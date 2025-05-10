@@ -1,0 +1,61 @@
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from datetime import datetime, timedelta
+from collections import Counter
+
+# Download VADER lexicon
+nltk.download('vader_lexicon')
+
+# Initialize analyzer
+analyzer = SentimentIntensityAnalyzer()
+
+# Sample posts with simulated timestamps
+social_media_posts = [
+    "I love how this product works! Highly recommend it.",
+    "This is the worst service I’ve ever experienced.",
+    "Just another average day, nothing special.",
+    "I'm so excited for the concert tonight!",
+    "Why is everything going wrong today?"
+]
+
+# Simulate timestamps (1 hour apart)
+base_time = datetime.now()
+timestamps = [base_time - timedelta(hours=i) for i in range(len(social_media_posts))][::-1]
+
+# Store sentiment data
+sentiment_data = []
+
+def analyze_sentiment(text):
+    score = analyzer.polarity_scores(text)
+    compound = score['compound']
+    if compound >= 0.05:
+        sentiment = "Positive"
+    elif compound <= -0.05:
+        sentiment = "Negative"
+    else:
+        sentiment = "Neutral"
+    return sentiment, compound
+
+# Analyze posts
+for post, time in zip(social_media_posts, timestamps):
+    sentiment, compound = analyze_sentiment(post)
+    sentiment_data.append({
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "post": post,
+        "sentiment": sentiment,
+        "compound": compound
+    })
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {post}")
+    print(f"-> Sentiment: {sentiment}, Compound Score: {compound}")
+    print("-" * 60)
+
+# Emotion Distribution (Text Bar Chart)
+print("\nEmotion Distribution:")
+counts = Counter([item["sentiment"] for item in sentiment_data])
+for sentiment, count in counts.items():
+    print(f"{sentiment}: {'#' * count} ({count})")
+
+# Timeline Sentiment Summary
+print("\nSentiment Timeline:")
+for entry in sentiment_data:
+    print(f"{entry['timestamp']} | {entry['sentiment']} | Compound: {entry['compound']:.2f}")
